@@ -38,28 +38,31 @@ export function addingTask() {
 }
 
 //function deletes the task on cliking the del_btn
-function deletingTask(btn: HTMLButtonElement) {
+function deletingTask(btn: HTMLButtonElement): void {
   btn.addEventListener("click", (e: MouseEvent) =>
     (e.currentTarget as HTMLInputElement)?.parentElement?.remove()
   );
 }
 
-//attach deleteTask for every del_btn
-let deleteTasks = () => {
+//attach deleteTask function for every del_btn
+let deleteTasks = (): void => {
   let delBTNs = document.querySelectorAll<HTMLButtonElement>(
     ".singleTask .del_btn"
-  )!;
+  )! as NodeListOf<HTMLButtonElement>;
   if (delBTNs.length > 0) {
-    delBTNs.forEach((el) => {
+    delBTNs.forEach((el: HTMLButtonElement) => {
       deletingTask(el);
     });
   }
 };
 
-export let clearAllTasks = () => {
-  let clearAll = document.querySelector(".tasks-block .clear_btn #clear")!;
-  let tasksBlock = document.querySelector("#tasks")!;
-  clearAll?.addEventListener("click", () => {
+export let clearAllTasks = (): void => {
+  let clearAll = document.querySelector(
+    ".tasks-block .clear_btn #clear"
+  )! as HTMLButtonElement;
+  let tasksBlock = document.querySelector("#tasks")! as HTMLDivElement;
+
+  clearAll.addEventListener<"click">("click", () => {
     if (tasksBlock.innerHTML !== "") {
       tasksBlock.innerHTML = "";
     }
@@ -73,7 +76,7 @@ function checkElem() {
   )! as NodeListOf<HTMLInputElement>;
 
   checkBoxes.forEach((box: HTMLInputElement) => {
-    box.addEventListener("click", (e) => {
+    box.addEventListener<"click">("click", (e: MouseEvent) => {
       let singleTask = (e.currentTarget as HTMLInputElement)
         ?.parentElement as HTMLElement;
       singleTask.style.opacity = "0.5";
