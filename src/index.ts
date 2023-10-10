@@ -14,13 +14,14 @@ class CreateTaskElement {
   }
 }
 
+//adding and displaying the new task to the tasks block
 export function addingTask() {
   let newTask = document.querySelector<HTMLInputElement>("#add_input")!;
   let formElem = document.querySelector<HTMLFormElement>("form.add-task")!;
   let tasksBlock = document.querySelector<HTMLDivElement>(
     ".tasks-block #tasks"
   )!;
-
+  getLocalTasks(tasksBlock);
   formElem.addEventListener("submit", (e) => {
     e.preventDefault();
     if (newTask.value !== "") {
@@ -32,16 +33,36 @@ export function addingTask() {
       }
     }
     newTask.value = "";
+    refreshLocalStorage();
     deleteTasks();
     checkElem();
   });
 }
 
+//get stored tasks from local storage
+const getLocalTasks = (tasksBlock: HTMLDivElement) => {
+  let data = localStorage.getItem("toDoListItems");
+  if (data !== undefined) {
+    let items: { id: number; val: string }[] = JSON.parse(data as string);
+    items.forEach((item) => {
+      let newT: HTMLDivElement = new CreateTaskElement(
+        `${item.val}`
+      ).createDiv();
+      if (newT) {
+        tasksBlock.appendChild(newT);
+      }
+    });
+    deleteTasks();
+    checkElem();
+  }
+};
+
 //function deletes the task on cliking the del_btn
 function deletingTask(btn: HTMLButtonElement): void {
-  btn.addEventListener("click", (e: MouseEvent) =>
-    (e.currentTarget as HTMLInputElement)?.parentElement?.remove()
-  );
+  btn.addEventListener("click", (e: MouseEvent) => {
+    (e.currentTarget as HTMLInputElement)?.parentElement?.remove();
+    refreshLocalStorage();
+  });
 }
 
 //attach deleteTask function for every del_btn
@@ -65,6 +86,7 @@ export let clearAllTasks = (): void => {
   clearAll.addEventListener<"click">("click", () => {
     if (tasksBlock.innerHTML !== "") {
       tasksBlock.innerHTML = "";
+      refreshLocalStorage();
     }
   });
 };
@@ -82,4 +104,23 @@ function checkElem() {
       singleTask.style.opacity = "0.5";
     });
   });
+}
+
+//save tasks in local storage and refresh on every change
+function refreshLocalStorage() {
+  let tasksContent = document.querySelectorAll<HTMLDivElement>(
+    ".tasks-block #tasks .singleTask #task_title"
+  )! as NodeListOf<HTMLParagraphElement>;
+
+  let arr: { id: number; val: string }[] = [];
+
+  if (tasksContent) {
+    tasksContent.forEach((t) => {
+      arr.push({
+        id: Math.floor(Math.random() * 1000),
+        val: t.innerText as string,
+      });
+    });
+    localStorage.setItem("toDoListItems", JSON.stringify(arr));
+  }
 }

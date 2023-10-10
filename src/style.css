@@ -17,6 +17,7 @@ body {
 html {
   --task-background: rgb(237, 235, 235);
   --del-btn: #d4cfcf;
+  --txt-color: rgb(21, 101, 231);
 }
 input[type="button"],
 input[type="submit"] {
@@ -42,6 +43,9 @@ input[type="submit"]:hover {
   align-items: center;
   gap: 10px;
   padding: 10px;
+}
+.to-do-list h1 {
+  color: var(--txt-color);
 }
 .to-do-list .add-task {
   display: flex;
@@ -91,6 +95,13 @@ input[type="submit"]:hover {
   font-size: 20px;
   align-items: center;
 }
+
+.tasks-block #tasks .singleTask .taskTitle #task_title {
+  font-weight: bolder;
+  font-size: larger;
+  color: var(--txt-color);
+}
+
 input[type="checkbox"] {
   width: 15px;
   height: 15px;
