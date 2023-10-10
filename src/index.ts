@@ -44,7 +44,7 @@ const getLocalTasks = (tasksBlock: HTMLDivElement) => {
   let data = localStorage.getItem("toDoListItems");
   if (data !== undefined) {
     let items: { id: number; val: string }[] = JSON.parse(data as string);
-    items.forEach((item) => {
+    items?.forEach((item) => {
       let newT: HTMLDivElement = new CreateTaskElement(
         `${item.val}`
       ).createDiv();
