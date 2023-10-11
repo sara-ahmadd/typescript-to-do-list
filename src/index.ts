@@ -1,156 +1,71 @@
-class CreateTaskNode {
-  constructor(public val: string) {}
-  createDiv() {
-    let divElem = document.createElement("div")! as HTMLDivElement;
-    divElem.classList.add("singleTask");
-    divElem.innerHTML = `
-          <div class='taskTitle'>
-            <input type='checkbox' id='check_box'/>
-            <p id='task_title'>${this.val}</p>
-          </div>
-          <input type='button' value='X' class='del_btn'/>
-      `;
-    return divElem;
-  }
-  appendNodeToTasksBlock(node: HTMLDivElement) {
-    let tasksBlock = document.querySelector<HTMLDivElement>(
+import { CreateListItem, List, ListItem, ListOfTasks } from "./main";
+
+interface DOMList {
+  createDiv(list: ListOfTasks): void;
+  appendNodeToTasksBlock(node: HTMLDivElement): void;
+  clear(): void;
+}
+
+export class HandleTaskNode implements DOMList {
+  tasksBlock: HTMLDivElement;
+  static instance: HandleTaskNode = new HandleTaskNode();
+  static count: number = 0;
+  private constructor() {
+    this.tasksBlock = document.querySelector<HTMLDivElement>(
       ".tasks-block #tasks"
     )!;
-    tasksBlock.appendChild(node);
   }
-}
+  createDiv(fullList: ListOfTasks): void {
+    HandleTaskNode.count++;
 
-//adding and displaying the new task to the tasks block
-export function addingTask() {
-  let newTask = document.querySelector<HTMLInputElement>("#add_input")!;
-  let formElem = document.querySelector<HTMLFormElement>("form.add-task")!;
-  let tasksBlock = document.querySelector<HTMLDivElement>(
-    ".tasks-block #tasks"
-  )!;
-  getLocalTasks(tasksBlock);
-  formElem.addEventListener("submit", (e) => {
-    e.preventDefault();
-    if (newTask.value !== "") {
-      let newT: HTMLDivElement = new CreateTaskNode(
-        `${newTask.value}`
-      ).createDiv();
-      if (newT) {
-        tasksBlock.appendChild(newT);
-      }
-    }
-    newTask.value = "";
-    refreshLocalStorage();
-    deleteTasks();
-    checkElem();
-  });
-}
+    this.clear();
 
-//get stored tasks from local storage
-const getLocalTasks = (tasksBlock: HTMLDivElement) => {
-  let data = localStorage.getItem("toDoListItems");
-  if (data !== undefined) {
-    let items: { id: number; val: string }[] = JSON.parse(data as string);
-    items?.forEach((item) => {
-      let newT: HTMLDivElement = new CreateTaskNode(`${item.val}`).createDiv();
-      if (newT) {
-        tasksBlock.appendChild(newT);
-      }
-    });
-    deleteTasks();
-    checkElem();
-  }
-};
+    fullList.list.forEach((item) => {
+      let divElem = document.createElement("div")! as HTMLDivElement;
+      divElem.classList.add("singleTask");
 
-//function deletes the task on cliking the del_btn
-function deletingTask(btn: HTMLButtonElement): void {
-  btn.addEventListener("click", (e: MouseEvent) => {
-    (e.currentTarget as HTMLInputElement)?.parentElement?.remove();
-    refreshLocalStorage();
-  });
-}
+      let taskTitle = document.createElement("div");
+      taskTitle.className = "taskTitle";
 
-//attach deleteTask function for every del_btn
-let deleteTasks = (): void => {
-  let delBTNs = document.querySelectorAll<HTMLButtonElement>(
-    ".singleTask .del_btn"
-  )! as NodeListOf<HTMLButtonElement>;
-  if (delBTNs.length > 0) {
-    delBTNs.forEach((el: HTMLButtonElement) => {
-      deletingTask(el);
-    });
-  }
-};
+      let checkBox = document.createElement("input");
+      checkBox.type = "checkbox";
+      checkBox.id = item.id;
+      checkBox.checked = item.checked;
 
-export let clearAllTasks = (): void => {
-  let clearAll = document.querySelector(
-    ".tasks-block .clear_btn #clear"
-  )! as HTMLButtonElement;
-  let tasksBlock = document.querySelector("#tasks")! as HTMLDivElement;
+      let label = document.createElement("label");
+      label.htmlFor = item.id;
+      label.innerText = item.val;
 
-  clearAll.addEventListener<"click">("click", () => {
-    if (tasksBlock.innerHTML !== "") {
-      tasksBlock.innerHTML = "";
-      refreshLocalStorage();
-    }
-  });
-};
-interface ListItem {
-  id: number;
-  val: string;
-  checked: boolean;
-}
+      taskTitle.appendChild(checkBox);
+      taskTitle.appendChild(label);
 
-//decrease the opacity of the checked tasks
-function checkElem() {
-  let checkBoxes = document.querySelectorAll(
-    "#check_box"
-  )! as NodeListOf<HTMLInputElement>;
-  let data = localStorage.getItem("toDoListItems");
-  let items: ListItem[] = JSON.parse(data as string) || [];
+      let delBtn = document.createElement("input");
+      delBtn.className = "del_btn";
+      delBtn.type = "button";
+      delBtn.value = "X";
 
-  checkBoxes.forEach((box: HTMLInputElement) => {
-    box.addEventListener<"click">("click", (e: MouseEvent) => {
-      let singleTask = (e.currentTarget as HTMLInputElement)
-        ?.parentElement as HTMLElement;
+      divElem.appendChild(taskTitle);
+      divElem.appendChild(delBtn);
 
-      let taskText = (e.currentTarget as HTMLInputElement)
-        ?.nextElementSibling as HTMLElement;
+      this.appendNodeToTasksBlock(divElem);
 
-      let item = items.filter(
-        (i) => i.val === (taskText.innerText as string)
-      )[0];
+      //add event listener to checkbox
+      checkBox.addEventListener("change", () => {
+        item.checked = !item.checked;
+        fullList.saveToLocalStorage();
+      });
 
-      if (box.checked === true) {
-        singleTask.style.opacity = "0.5";
-        item.checked = true;
-      } else {
-        singleTask.style.opacity = "1";
-        item.checked = false;
-      }
-      console.log(item);
-    });
-  });
-}
-
-//save tasks in local storage and refresh on every change
-function refreshLocalStorage(
-  status: boolean = false,
-  itemId: number = Math.floor(Math.random() * 1000)
-) {
-  let tasksContent = document.querySelectorAll<HTMLDivElement>(
-    ".tasks-block #tasks .singleTask #task_title"
-  )! as NodeListOf<HTMLParagraphElement>;
-
-  let arr: ListItem[] = [];
-
-  if (tasksContent) {
-    tasksContent.forEach((t) => {
-      arr.push({
-        id: itemId,
-        val: t.innerText as string,
-        checked: status,
+      //add event listener to delete button
+      delBtn.addEventListener("click", () => {
+        fullList.removeTask(item.id);
+        this.createDiv(fullList);
       });
     });
-    localStorage.setItem("toDoListItems", JSON.stringify(arr));
+  }
+  appendNodeToTasksBlock(node: HTMLDivElement): void {
+    this.tasksBlock.appendChild(node);
+  }
+  clear(): void {
+    this.tasksBlock.innerHTML = "";
   }
 }
