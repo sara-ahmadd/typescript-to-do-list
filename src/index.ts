@@ -1,4 +1,4 @@
-class CreateTaskElement {
+class CreateTaskNode {
   constructor(public val: string) {}
   createDiv() {
     let divElem = document.createElement("div")! as HTMLDivElement;
@@ -11,6 +11,12 @@ class CreateTaskElement {
           <input type='button' value='X' class='del_btn'/>
       `;
     return divElem;
+  }
+  appendNodeToTasksBlock(node: HTMLDivElement) {
+    let tasksBlock = document.querySelector<HTMLDivElement>(
+      ".tasks-block #tasks"
+    )!;
+    tasksBlock.appendChild(node);
   }
 }
 
@@ -25,7 +31,7 @@ export function addingTask() {
   formElem.addEventListener("submit", (e) => {
     e.preventDefault();
     if (newTask.value !== "") {
-      let newT: HTMLDivElement = new CreateTaskElement(
+      let newT: HTMLDivElement = new CreateTaskNode(
         `${newTask.value}`
       ).createDiv();
       if (newT) {
@@ -45,9 +51,7 @@ const getLocalTasks = (tasksBlock: HTMLDivElement) => {
   if (data !== undefined) {
     let items: { id: number; val: string }[] = JSON.parse(data as string);
     items?.forEach((item) => {
-      let newT: HTMLDivElement = new CreateTaskElement(
-        `${item.val}`
-      ).createDiv();
+      let newT: HTMLDivElement = new CreateTaskNode(`${item.val}`).createDiv();
       if (newT) {
         tasksBlock.appendChild(newT);
       }
@@ -90,35 +94,61 @@ export let clearAllTasks = (): void => {
     }
   });
 };
+interface ListItem {
+  id: number;
+  val: string;
+  checked: boolean;
+}
 
 //decrease the opacity of the checked tasks
 function checkElem() {
   let checkBoxes = document.querySelectorAll(
     "#check_box"
   )! as NodeListOf<HTMLInputElement>;
+  let data = localStorage.getItem("toDoListItems");
+  let items: ListItem[] = JSON.parse(data as string) || [];
 
   checkBoxes.forEach((box: HTMLInputElement) => {
     box.addEventListener<"click">("click", (e: MouseEvent) => {
       let singleTask = (e.currentTarget as HTMLInputElement)
         ?.parentElement as HTMLElement;
-      singleTask.style.opacity = "0.5";
+
+      let taskText = (e.currentTarget as HTMLInputElement)
+        ?.nextElementSibling as HTMLElement;
+
+      let item = items.filter(
+        (i) => i.val === (taskText.innerText as string)
+      )[0];
+
+      if (box.checked === true) {
+        singleTask.style.opacity = "0.5";
+        item.checked = true;
+      } else {
+        singleTask.style.opacity = "1";
+        item.checked = false;
+      }
+      console.log(item);
     });
   });
 }
 
 //save tasks in local storage and refresh on every change
-function refreshLocalStorage() {
+function refreshLocalStorage(
+  status: boolean = false,
+  itemId: number = Math.floor(Math.random() * 1000)
+) {
   let tasksContent = document.querySelectorAll<HTMLDivElement>(
     ".tasks-block #tasks .singleTask #task_title"
   )! as NodeListOf<HTMLParagraphElement>;
 
-  let arr: { id: number; val: string }[] = [];
+  let arr: ListItem[] = [];
 
   if (tasksContent) {
     tasksContent.forEach((t) => {
       arr.push({
-        id: Math.floor(Math.random() * 1000),
+        id: itemId,
         val: t.innerText as string,
+        checked: status,
       });
     });
     localStorage.setItem("toDoListItems", JSON.stringify(arr));

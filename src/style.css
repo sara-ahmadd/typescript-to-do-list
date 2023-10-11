@@ -96,7 +96,7 @@ input[type="submit"]:hover {
   align-items: center;
 }
 
-.tasks-block #tasks .singleTask .taskTitle #task_title {
+.tasks-block #tasks .singleTask .taskTitle > p {
   font-weight: bolder;
   font-size: larger;
   color: var(--txt-color);
