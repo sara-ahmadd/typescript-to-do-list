@@ -1,9 +1,3 @@
-import {  List } from "./main";
-
-
-
-
-
 export interface ListItem {
   id: string;
   val: string;
@@ -87,8 +81,6 @@ export class ListOfTasks implements List {
     localStorage.setItem("ListOfTasks", JSON.stringify(this._list));
   }
 }
-
-
 
 interface DOMList {
   createDiv(list: ListOfTasks): void;
